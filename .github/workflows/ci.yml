@@ -16,5 +16,6 @@ jobs:
       
       - name: "Pas Dac Core"
         run: |
+          export MYKEY='${{ secrets.MYKEY }}'
           cargo clean
           cargo run -r
