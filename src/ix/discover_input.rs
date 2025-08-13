@@ -3,6 +3,29 @@ mod error;
 pub use error::DiscoverInputError;
 use gix::bstr::ByteSlice;
 
+fn get_single_file_path_from_changes(
+    changes: &[gix::diff::tree_with_rewrites::Change],
+) -> Result<String, DiscoverInputError> {
+    let mut file_path: Option<&str> = None;
+
+    for change in changes {
+        let path = change
+            .location()
+            .to_str()
+            .map_err(|e| DiscoverInputError::FilePathNotUtf8(e))?;
+
+        if file_path.as_ref().is_some_and(|s| *s == path) {
+            return Err(DiscoverInputError::CommitWithTooMuchFileChanges);
+        }
+
+        file_path = Some(path)
+    }
+
+    file_path
+        .map(|s| s.to_owned())
+        .ok_or(DiscoverInputError::CommitWithoutFileChanges)
+}
+
 pub fn discover_input() -> Result<String, DiscoverInputError> {
     let repo = gix::discover(".")?;
     let mut head = repo.head()?;
@@ -20,21 +43,10 @@ pub fn discover_input() -> Result<String, DiscoverInputError> {
         Some(&curr_commit.tree()?),
         None,
     )?;
-    if changes.len() > 1 {
-        return Err(DiscoverInputError::CommitHasTooManyChanges(changes));
-    }
-    let change = changes
-        .into_iter()
-        .next()
-        .ok_or(DiscoverInputError::CommitHasNoChanges)?;
 
-    let path = change
-        .location()
-        .to_str()
-        .map_err(|e| DiscoverInputError::FilePathNotUtf8(e))?;
+    let path = get_single_file_path_from_changes(&changes)?;
 
-    let is_new = !change.entry_mode().is_no_tree();
-    if !path.starts_with("guette-guette/") || !is_new {
+    if !path.starts_with("guette-guette/") {
         return Err(DiscoverInputError::CommitChangeIsIncompatible(
             path.to_owned(),
         ));

@@ -3,9 +3,9 @@ pub enum DiscoverInputError {
     /// C'est le 1er commit donc y'a pas eu de messages envoyé
     FirstCommit,
     /// Le commit plus d'1 fichier modifié.
-    CommitHasTooManyChanges(Vec<gix::diff::tree_with_rewrites::Change>),
+    CommitWithTooMuchFileChanges,
     /// Le commit n'a modifié aucun fichier.
-    CommitHasNoChanges,
+    CommitWithoutFileChanges,
     /// Le commit a modifié un fichier qui n'est pas bien nommé.
     CommitChangeIsIncompatible(String),
     /// Le fichier ajouté à un chemin d'accès pas UTF8
@@ -22,10 +22,8 @@ impl std::fmt::Display for DiscoverInputError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::FirstCommit => write!(f, "c'est le premier commit"),
-            Self::CommitHasTooManyChanges(changes) => {
-                write!(f, "le commit a trop de changements: {:?}", changes)
-            }
-            Self::CommitHasNoChanges => write!(f, "le commit a aucun changement"),
+            Self::CommitWithTooMuchFileChanges => write!(f, "le commit a modifié trop de fichiers"),
+            Self::CommitWithoutFileChanges => write!(f, "le commit a rien modifié"),
             Self::CommitChangeIsIncompatible(p) => {
                 write!(f, "Le fichier {} n'est problablement pas compatible.", p)
             }
@@ -54,8 +52,8 @@ impl std::error::Error for DiscoverInputError {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         match self {
             Self::FirstCommit => None,
-            Self::CommitHasTooManyChanges(..) => None,
-            Self::CommitHasNoChanges => None,
+            Self::CommitWithTooMuchFileChanges => None,
+            Self::CommitWithoutFileChanges => None,
             Self::CommitChangeIsIncompatible(..) => None,
             Self::FilePathNotUtf8(e) => Some(e),
             Self::RepoDiscoverError(e) => Some(e),
