@@ -1,0 +1,20 @@
+name: "Hard Core"
+
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  ci:
+    name: "To much love"
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 2
+      
+      - name: "Pas Dac Core"
+        run: |
+          cargo clean
+          cargo run -r
