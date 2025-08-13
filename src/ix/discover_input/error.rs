@@ -2,8 +2,12 @@
 pub enum DiscoverInputError {
     /// C'est le 1er commit donc y'a pas eu de messages envoyé
     FirstCommit,
-    /// Le commit n'est pas traitable car il contient trop de fichiers ou ne contient pas le payload
-    IncompatibleCommit,
+    /// Le commit plus d'1 fichier modifié.
+    CommitHasTooManyChanges,
+    /// Le commit n'a modifié aucun fichier.
+    CommitHasNoChanges,
+    /// Le commit a modifié un fichier qui n'est pas bien nommé.
+    CommitChangeIsIncompatible(String),
     /// Le fichier ajouté à un chemin d'accès pas UTF8
     FilePathNotUtf8(gix::bstr::Utf8Error),
     RepoDiscoverError(gix::discover::Error),
@@ -18,7 +22,11 @@ impl std::fmt::Display for DiscoverInputError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::FirstCommit => write!(f, "c'est le premier commit"),
-            Self::IncompatibleCommit => write!(f, "le commit est incompatible"),
+            Self::CommitHasTooManyChanges => write!(f, "le commit a trop de changements"),
+            Self::CommitHasNoChanges => write!(f, "le commit a aucun changement"),
+            Self::CommitChangeIsIncompatible(p) => {
+                write!(f, "Le fichier {} n'est problablement pas compatible.", p)
+            }
             Self::FilePathNotUtf8(e) => write!(f, "Le chemin d'accès est pas UTF8: {}", e),
             Self::RepoDiscoverError(e) => write!(f, "Repo git introuvable: {}", e),
             Self::FindExistingReferenceError(e) => {
@@ -44,7 +52,9 @@ impl std::error::Error for DiscoverInputError {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         match self {
             Self::FirstCommit => None,
-            Self::IncompatibleCommit => None,
+            Self::CommitHasTooManyChanges => None,
+            Self::CommitHasNoChanges => None,
+            Self::CommitChangeIsIncompatible(..) => None,
             Self::FilePathNotUtf8(e) => Some(e),
             Self::RepoDiscoverError(e) => Some(e),
             Self::FindExistingReferenceError(e) => Some(e),

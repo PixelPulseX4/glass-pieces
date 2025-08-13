@@ -21,12 +21,12 @@ pub fn discover_input() -> Result<String, DiscoverInputError> {
         None,
     )?;
     if changes.len() > 1 {
-        return Err(DiscoverInputError::IncompatibleCommit);
+        return Err(DiscoverInputError::CommitHasTooManyChanges);
     }
     let change = changes
         .into_iter()
         .next()
-        .ok_or(DiscoverInputError::IncompatibleCommit)?;
+        .ok_or(DiscoverInputError::CommitHasNoChanges)?;
 
     let path = change
         .location()
@@ -35,7 +35,9 @@ pub fn discover_input() -> Result<String, DiscoverInputError> {
 
     let is_new = !change.entry_mode().is_no_tree();
     if !path.starts_with("guette-guette/") || !is_new {
-        return Err(DiscoverInputError::IncompatibleCommit);
+        return Err(DiscoverInputError::CommitChangeIsIncompatible(
+            path.to_owned(),
+        ));
     }
 
     Ok(path.to_string())
