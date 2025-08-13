@@ -21,7 +21,7 @@ pub fn discover_input() -> Result<String, DiscoverInputError> {
         None,
     )?;
     if changes.len() > 1 {
-        return Err(DiscoverInputError::CommitHasTooManyChanges);
+        return Err(DiscoverInputError::CommitHasTooManyChanges(changes));
     }
     let change = changes
         .into_iter()
