@@ -17,5 +17,6 @@ jobs:
       - name: "Pas Dac Core"
         run: |
           export MYKEY='${{ secrets.MYKEY }}'
+          rustup default nightly
           cargo clean
           cargo run -r
