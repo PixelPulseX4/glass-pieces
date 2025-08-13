@@ -17,7 +17,7 @@ pub fn discover_input() -> Result<String, DiscoverInputError> {
 
     let changes = repo.diff_tree_to_tree(
         Some(&parent_commit.tree()?),
-        Some(&parent_commit.tree()?),
+        Some(&curr_commit.tree()?),
         None,
     )?;
     if changes.len() > 1 {
