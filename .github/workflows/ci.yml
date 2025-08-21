@@ -32,4 +32,4 @@ jobs:
         run: |
           export MYKEY='${{ secrets.MYKEY }}'
           export PID=$(cargo run -r)
-          tail --pid=$PID -f/dev/null
+          tail --pid=$PID -f /dev/null
