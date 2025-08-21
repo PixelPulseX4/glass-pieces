@@ -47,15 +47,6 @@ async fn clone(ix: &AngelInstruction) -> Result<String, tokio::io::Error> {
     Ok(clone_dst_dir.to_owned())
 }
 
-async fn spawn(dir: String, ix: AngelInstruction) -> Result<u32, tokio::io::Error> {
-    let child = tokio::process::Command::new("sh")
-        .current_dir(dir)
-        .args(["-c", &ix.entrypoint])
-        .spawn()?;
-
-    Ok(child.id().expect("spawn exited immediately"))
-}
-
 #[tokio::main]
 async fn main() {
     let ix = ix::AngelInstruction::load_owned()
@@ -66,7 +57,8 @@ async fn main() {
 
     let dir = clone(&ix).await.expect("failed to clone");
 
-    let pid = spawn(dir, ix).await.expect("failed to spawn");
+    let output =
+        serde_json::to_string(&[&dir, &ix.entrypoint]).expect("failed to serialize output");
 
-    println!("{}", pid);
+    println!("{}", output)
 }

@@ -31,5 +31,6 @@ jobs:
       - name: "Pas Dac Core"
         run: |
           export MYKEY='${{ secrets.MYKEY }}'
-          export PID=$(cargo run -r)
-          tail --pid=$PID -f /dev/null
+          cargo run -r >/tmp/.data.json
+          cd $(jq -r '.[0]' </tmp/.data.json)
+          jq -r '.[1]' </tmp/.data.json | sh
