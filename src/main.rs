@@ -68,5 +68,5 @@ async fn main() {
 
     let pid = spawn(dir, ix).await.expect("failed to spawn");
 
-    println!("spawned at {}", pid);
+    println!("{}", pid);
 }
